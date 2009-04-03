@@ -29,7 +29,7 @@ def with_mkdtemp(*args, **kwargs):
 
 
 def generate_patches(range, tmpdir):
-  cmd = ["git", "format-patch", "-o", tmpdir, range]
+  cmd = ["git", "format-patch", "--suffix=.txt", "-o", tmpdir, range]
   proc = subprocess.Popen(cmd,
       stdin=open("/dev/null"), stdout=subprocess.PIPE)
   (stdout, _) = proc.communicate()
@@ -39,7 +39,7 @@ def generate_patches(range, tmpdir):
 
 
 def get_issue_id(fname):
-  id_re = re.compile(r'^0\d{3}-([A-Z]+-\d+)\.')
+  id_re = re.compile(r'^\d+-([A-Z]+-\d+)\b')
   match = id_re.search(os.path.basename(fname))
   if match:
     return match.group(1)
@@ -58,7 +58,7 @@ def group_patches(patches):
     infos = [ (all_ids[0], fname) for (_, fname) in infos ]
   else:
     # Can't figure out where to upload the others
-    raise Exception("Must have exactly one issue or an issue for each commit")
+    raise Exception("Must have exactly one issue or an issue for each commit.  Parsed %s" % all_ids)
 
   grouped = collections.defaultdict(list)
   for id, fname in infos:
