@@ -14,6 +14,7 @@ import SOAPpy
 import traceback
 import pprint
 import pdb
+import getopt
 
 
 @contextlib.contextmanager
@@ -66,10 +67,10 @@ def group_patches(patches):
   return grouped
 
 
-def get_soap_client(base_url):
+def get_soap_client(base_url, username):
   base_url = base_url.rstrip("/")
 
-  jirauser = getpass.getuser()
+  jirauser = username and username or getpass.getuser()
   jirapass = getpass.getpass()
 
   # Use urllib2 here instead of just passing the url directly,
@@ -119,27 +120,43 @@ def attach_files(grouped_patches, soap_client, auth):
   return all_okay
 
 
-def generate_confirm_and_upload(base_url, range):
+def generate_confirm_and_upload(base_url, range, username):
   with with_mkdtemp() as tmpdir:
     grouped_patches = group_patches(generate_patches(range, tmpdir))
-    soap_client, auth = get_soap_client(base_url)
+    soap_client, auth = get_soap_client(base_url, username)
     if confirm_attach(grouped_patches, soap_client, auth):
       return attach_files(grouped_patches, soap_client, auth)
 
 
 def main():
-  if not (2 <= len(sys.argv) <= 3):
-    sys.exit("usage: jira_patches.py GIT_RANGE [BASE_URL]")
+  try:
+    (options, arguments) = getopt.getopt(sys.argv[1:], 'u:h')
+  except getopt.GetoptError, err:
+    print >>sys.stderr, err
+    sys.exit(1)
 
+  usage = "usage: %s [-u username] GIT_RANGE [BASE_URL]" % sys.argv[0]
   #base_url 'http://localhost:8080/"
   base_url = "https://issues.apache.org/jira/"
-  if len(sys.argv) >= 3:
-    base_url = sys.argv[2]
-  range = sys.argv[1]
+  username = None
 
-  ret = generate_confirm_and_upload(base_url, range)
+  for (opt, arg) in options:
+    if opt in ("-u",):
+        username = arg
+    if opt in ("-h",):
+        sys.exit(usage)
+
+  if not (1 <= len(arguments) <= 2):
+    sys.exit(usage)
+  elif (len(arguments) >= 2):
+    base_url = arguments[1]
+  range = arguments[0]
+
+  ret = generate_confirm_and_upload(base_url, range, username)
   sys.exit(ret)
 
 
 if __name__ == "__main__":
   main()
+
+# vi:ai ts=4 sw=4 tw=0 et
