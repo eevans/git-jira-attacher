@@ -5,7 +5,6 @@ from __future__ import with_statement
 import sys
 import contextlib
 import os
-import os.path
 import subprocess
 import re
 import collections
@@ -59,7 +58,8 @@ def group_patches(patches):
     infos = [ (all_ids[0], fname) for (_, fname) in infos ]
   else:
     # Can't figure out where to upload the others
-    raise Exception("Must have exactly one issue or an issue for each commit.  Parsed %s" % all_ids)
+    raise Exception("Must have exactly one issue or an issue for each commit."
+        "  Got %r" % all_ids)
 
   grouped = collections.defaultdict(list)
   for id, fname in infos:
@@ -67,10 +67,10 @@ def group_patches(patches):
   return grouped
 
 
-def get_soap_client(base_url, username):
+def get_soap_client(base_url, username = None):
   base_url = base_url.rstrip("/")
 
-  jirauser = username and username or getpass.getuser()
+  jirauser = username or getpass.getuser()
   jirapass = getpass.getpass()
 
   # Use urllib2 here instead of just passing the url directly,
@@ -98,7 +98,7 @@ def confirm_attach(grouped_patches, soap_client, auth):
     if resp == "x": pdb.set_trace()
 
 
-def attach_files(grouped_patches, soap_client, auth):
+def attach_files(grouped_patches, version, soap_client, auth):
   all_okay = True
 
   for issue_id, patches in sorted(grouped_patches.items()):
@@ -106,7 +106,7 @@ def attach_files(grouped_patches, soap_client, auth):
       names = []
       datas = []
       for patch in patches:
-        names.append(os.path.basename(patch))
+        names.append("v%d-%s" % (version, os.path.basename(patch)))
         datas.append(SOAPpy.base64BinaryType(open(patch).read()))
       ret = soap_client.addAttachmentsToIssue(auth, issue_id, names, datas)
       if not ret:
@@ -120,39 +120,39 @@ def attach_files(grouped_patches, soap_client, auth):
   return all_okay
 
 
-def generate_confirm_and_upload(base_url, range, username):
+def generate_confirm_and_upload(base_url, range, version, username):
   with with_mkdtemp() as tmpdir:
     grouped_patches = group_patches(generate_patches(range, tmpdir))
     soap_client, auth = get_soap_client(base_url, username)
     if confirm_attach(grouped_patches, soap_client, auth):
-      return attach_files(grouped_patches, soap_client, auth)
+      return attach_files(grouped_patches, version, soap_client, auth)
 
 
 def main():
-  try:
-    (options, arguments) = getopt.getopt(sys.argv[1:], 'u:h')
-  except getopt.GetoptError, err:
-    print >>sys.stderr, err
-    sys.exit(1)
+  import optparse
+  parser = optparse.OptionParser(usage = "usage: %prog [options] {GIT_RANGE}")
+  parser.add_option("-u", "--username",
+      help="JIRA username if different from login name")
+  parser.add_option("-p", "--patch_version", type="int", default=1,
+      metavar="VERSION", help="patch version to prepend to attachments")
+  parser.add_option("-j", "--jira_url",
+      default="https://issues.apache.org/jira/",
+      help="URL of JIRA instance to upload to")
+  (options, args) = parser.parse_args()
+  if len(args) != 1:
+    parser.print_help()
+    sys.exit()
 
-  usage = "usage: %s [-u username] GIT_RANGE [BASE_URL]" % sys.argv[0]
-  #base_url 'http://localhost:8080/"
-  base_url = "https://issues.apache.org/jira/"
-  username = None
+  if len(sys.argv) >= 3:
+    base_url = sys.argv[2]
+  range = sys.argv[1]
 
-  for (opt, arg) in options:
-    if opt in ("-u",):
-        username = arg
-    if opt in ("-h",):
-        sys.exit(usage)
-
-  if not (1 <= len(arguments) <= 2):
-    sys.exit(usage)
-  elif (len(arguments) >= 2):
-    base_url = arguments[1]
-  range = arguments[0]
-
-  ret = generate_confirm_and_upload(base_url, range, username)
+  ret = generate_confirm_and_upload(
+      options.jira_url,
+      args[0],
+      options.patch_version,
+      options.username,
+      )
   sys.exit(ret)
 
 
