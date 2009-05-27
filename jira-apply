@@ -54,6 +54,7 @@ if __name__ == '__main__':
         
     username = None
     strip = 0
+    usagestr = "%s [-u username] [-p num] [-h] jira_issue" % argv[0]
     
     for opt,arg in options:
         if opt in ('-u', '--username'):
@@ -61,14 +62,16 @@ if __name__ == '__main__':
         if opt in ('-p', '--strip'):
             strip = int(arg)
         if opt in ('-h', '--help'):
-            print "%s [-u username] [-p num] [-h] jira_issue" % argv[0]
+            print usagestr
             exit(0)
             
+    if not len(arguments):
+        print >>stderr, usagestr
+        exit(1)
+    
     if not username:
         username = getpass.getuser()
     passwd = getpass.getpass()
-    
-    assert len(arguments)
     
     main(arguments[0], username, passwd, strip)
 
