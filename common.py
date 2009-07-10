@@ -43,4 +43,24 @@ class JiraClient(object):
             resultset.append(JiraAttachement(a))
         return resultset
 
+def formatted_attachment_list(attachments):
+    """
+    Given a list of JiraAttachment instances, formats and prints the 
+    attachment metadata to stdout.
+    """
+    counter = 1
+    for a in attachments:
+        print "-" * 80
+        print "%-10s: %d" % ("ID No.", counter)
+        print "%-10s: %s (%s)" % ('Filename', a.filename, a.mimetype)
+        print "%-10s: %s" % ('Author', a.author)
+        print "%-10s: %s" % ('Created', a.created)
+        print "%-10s: %s bytes" % ('Size', a.filesize)
+        counter += 1
+    print "-" * 80
+
+def parse_patch_ids(ids):
+    # This is a little naive but OK for now
+    return ids.replace(',', ' ').split()
+ 
 # vi:ai sw=4 ts=4 tw=0 et:
