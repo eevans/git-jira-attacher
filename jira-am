@@ -1,0 +1,53 @@
+#!/usr/bin/python
+
+from common import JiraClient, formatted_attachment_list, parse_patch_ids
+import getpass, os, tempfile, subprocess as sp
+
+def apply_series(attachments, ids):
+    (fd, fname) = tempfile.mkstemp()
+    for index in ids:
+        f = attachments[int(index)-1].get_attached_file()
+        os.write(fd, f.read())
+    os.close(fd)
+    cmd = ['git', 'am', fname]
+    print fname
+    p = sp.Popen(cmd, stdin=open("/dev/null"), stdout=sp.PIPE)
+    (stdout, _) = p.communicate()
+    if p.returncode != 0:
+        raise sp.CalledProcessError(p.returncode, cmd)
+    os.remove(fname)
+    return [line for line in stdout.split("\n")]
+
+def main(issue, username, passwd):
+    client = JiraClient(username, passwd)
+    attachments = client.get_attachments(issue)
+    
+    formatted_attachment_list(attachments)
+    print "Attachment ID(s) to apply? ",
+    response = raw_input()
+    output = apply_series(attachments, parse_patch_ids(response))
+    print '\n'.join(output)
+
+if __name__ == '__main__':
+    from sys import argv, stderr, exit
+    from optparse import OptionParser
+
+    parser = OptionParser(usage="Usage: %prog [options] <jira_issue>")
+    parser.add_option("-u", "--username", default=None,
+            help="Jira username (if different from login name).")
+
+    (options, arguments) = parser.parse_args()
+
+    if len(arguments) != 1:
+        parser.print_help()
+        exit(1)
+
+    username = options.username
+        
+    if not username:
+        username = getpass.getuser()
+    passwd = getpass.getpass()
+    
+    main(arguments[0], username, passwd)
+
+# vi:ai sw=4 ts=4 tw=0 et:
