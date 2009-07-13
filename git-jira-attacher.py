@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Copyright (c) 2009 David Reiss and contributors
 
 from __future__ import with_statement
 

@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# Copyright (c) 2009 Eric Evans <eevans@sym-link.com>
 
 from common import JiraClient, formatted_attachment_list, parse_patch_ids
 import getpass, subprocess as sp
