@@ -13,7 +13,6 @@ import SOAPpy
 import traceback
 import pprint
 import pdb
-import getopt
 
 
 @contextlib.contextmanager
