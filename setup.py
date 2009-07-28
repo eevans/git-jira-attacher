@@ -8,6 +8,7 @@ except:
 setup(name='git-jira-attacher',
       version='0.1',
       description='Utility for integrating Git and JIRA workflows',
+      long_description=open('README.rst').read(),
       author='David Reiss',
       url='http://github.com/dreiss/git-jira-attacher/tree',
       license='MIT License',
