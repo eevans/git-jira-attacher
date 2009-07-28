@@ -14,7 +14,7 @@ Usage
 -----
 Run without arguments for usage.  ``GIT_RANGE`` is a commit range, like
 master..HEAD.  git-jira-attacher expects commit messages to begin
-with (e.g.) ``PROJECT-123. `` (no backticks) in order to identify the
+with (e.g.) ``PROJECT-123.`` in order to identify the
 relevant issue.  If all of the commits apply to a single issue,
 only one needs to have the tag.  Otherwise, every commit needs a tag.
 
