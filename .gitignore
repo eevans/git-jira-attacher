@@ -1,2 +1,6 @@
 *.pyc
 *.wpr
+dist
+build
+MANIFEST
+*.egg-info

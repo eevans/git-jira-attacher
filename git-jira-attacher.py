@@ -3,6 +3,9 @@
 
 from __future__ import with_statement
 
+from base64 import b64encode
+from suds.client import Client
+
 import sys
 import contextlib
 import os
@@ -10,7 +13,6 @@ import subprocess
 import re
 import collections
 import getpass
-import SOAPpy
 import traceback
 import pprint
 import pdb
@@ -70,21 +72,21 @@ def group_patches(patches):
 def get_soap_client(base_url, username = None):
   base_url = base_url.rstrip("/")
 
-  jirauser = username or getpass.getuser()
-  jirapass = getpass.getpass()
+  jirauser = username or getpass.getuser('JIRA User: ')
+  jirapass = getpass.getpass('JIRA Password: ')
 
   # Use urllib2 here instead of just passing the url directly,
   # because the internal urllib call seems to break with SSL+chunked.
   import urllib2
   handle = urllib2.urlopen(base_url + "/rpc/soap/jirasoapservice-v2?wsdl")
-  client = SOAPpy.WSDL.Proxy(handle)
-  auth = client.login(jirauser, jirapass)
+  client = Client(handle)
+  auth = client.service.login(jirauser, jirapass)
   return client, auth
 
 
 def confirm_attach(grouped_patches, soap_client, auth):
   for id, patches in sorted(grouped_patches.items()):
-    issue = soap_client.getIssue(auth, id)
+    issue = soap_client.service.getIssue(auth, id)
     print id, "(%s):" % issue["summary"]
     for patch in patches:
       print "  " + os.path.basename(patch)
@@ -107,8 +109,8 @@ def attach_files(grouped_patches, version, soap_client, auth):
       datas = []
       for patch in patches:
         names.append("v%d-%s" % (version, os.path.basename(patch)))
-        datas.append(SOAPpy.base64BinaryType(open(patch).read()))
-      ret = soap_client.addAttachmentsToIssue(auth, issue_id, names, datas)
+        datas.append(b64encode(open(patch).read()))
+      ret = soap_client.service.addAttachmentsToIssue(auth, issue_id, names, datas)
       if not ret:
         raise Exception("addAttachmentsToIssue returned false")
     except:

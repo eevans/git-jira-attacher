@@ -45,8 +45,8 @@ if __name__ == '__main__':
     username = options.username
         
     if not username:
-        username = getpass.getuser()
-    passwd = getpass.getpass()
+        username = getpass.getuser('JIRA Username: ')
+    passwd = getpass.getpass('JIRA Password: ')
     
     main(arguments[0], username, passwd, options.strip)
     

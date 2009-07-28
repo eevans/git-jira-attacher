@@ -1,7 +1,7 @@
 
 from urllib2   import urlopen
 from datetime  import datetime
-import SOAPpy
+from suds.client import Client
 
 class JiraAttachement(object):
     fields = ('filename', 'filesize', 'mimetype', 'author', 'created', 'id')
@@ -33,13 +33,13 @@ class JiraClient(object):
         self.__connect()
     
     def __connect(self):
-        handle = urlopen(self.url + "/rpc/soap/jirasoapservice-v2?wsdl")
-        self.client = SOAPpy.WSDL.Proxy(handle)
-        self.token = self.client.login(self.user, self.passwd)
+        url = self.url + "/rpc/soap/jirasoapservice-v2?wsdl"
+        self.client = Client(url)
+        self.token = self.client.service.login(self.user, self.passwd)
         
     def get_attachments(self, issue):
         resultset = []
-        for a in self.client.getAttachmentsFromIssue(self.token, issue.upper()):
+        for a in self.client.service.getAttachmentsFromIssue(self.token, issue.upper())[0]:
             resultset.append(JiraAttachement(a))
         return resultset
 
