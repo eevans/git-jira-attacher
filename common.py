@@ -1,9 +1,8 @@
-
 from urllib2   import urlopen
 from datetime  import datetime
 from suds.client import Client
 
-class JiraAttachement(object):
+class JiraAttachment(object):
     fields = ('filename', 'filesize', 'mimetype', 'author', 'created', 'id')
     default_base_url = 'http://issues.apache.org/jira/secure/attachment/'
     
@@ -40,7 +39,7 @@ class JiraClient(object):
     def get_attachments(self, issue):
         resultset = []
         for a in self.client.service.getAttachmentsFromIssue(self.token, issue.upper())[0]:
-            resultset.append(JiraAttachement(a))
+            resultset.append(JiraAttachment(a))
         return resultset
 
 def formatted_attachment_list(attachments):
