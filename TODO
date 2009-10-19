@@ -1,5 +1,6 @@
 
  * rename project to git-jira-tools (or similar)
- * rename git-jira-attacher.py (remove extension)
  * make git-jira-attacher use common.py
- * setuptools/distutils installation
+ 
+ x rename git-jira-attacher.py (remove extension)
+ x setuptools/distutils installation

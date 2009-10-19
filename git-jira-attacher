@@ -5,6 +5,7 @@ from __future__ import with_statement
 
 from base64 import b64encode
 from suds.client import Client
+from common import get_username, get_password, get_user_config
 
 import sys
 import contextlib
@@ -12,7 +13,6 @@ import os
 import subprocess
 import re
 import collections
-import getpass
 import traceback
 import pprint
 import pdb
@@ -71,9 +71,11 @@ def group_patches(patches):
 
 def get_soap_client(base_url, username = None):
   base_url = base_url.rstrip("/")
+  user_config = get_user_config()
 
-  jirauser = username or getpass.getuser('JIRA User: ')
-  jirapass = getpass.getpass('JIRA Password: ')
+  if not username: jirauser = get_username(user_config)
+  else: jirauser = username
+  jirapass = get_password(user_config)
 
   # Use urllib2 here instead of just passing the url directly,
   # because the internal urllib call seems to break with SSL+chunked.
