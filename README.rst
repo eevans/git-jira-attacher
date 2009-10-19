@@ -36,6 +36,20 @@ this script as an analog to ``git-apply(1)`` or ``patch(1)``.
 
 Run without arguments for usage.
 
+Configuration
+-------------
+Each of the above utilities accepts arguments for your Jira username, and
+each interactively prompts for the password, but it is possible to
+configure one or both of these values to keep from typing them repeatedly.
+
+Create or edit the file ``~/.git-jira-tools`` and set values for
+``username`` and ``password``. For example:
+
+::
+
+  username = jsmith
+  password = 4unkym0nk3y
+
 License
 -------
 This software is distributed under the MIT license.
