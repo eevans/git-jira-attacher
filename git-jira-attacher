@@ -77,11 +77,7 @@ def get_soap_client(base_url, username = None):
   else: jirauser = username
   jirapass = get_password(user_config)
 
-  # Use urllib2 here instead of just passing the url directly,
-  # because the internal urllib call seems to break with SSL+chunked.
-  import urllib2
-  handle = urllib2.urlopen(base_url + "/rpc/soap/jirasoapservice-v2?wsdl")
-  client = Client(handle)
+  client = Client(base_url + "/rpc/soap/jirasoapservice-v2?wsdl")
   auth = client.service.login(jirauser, jirapass)
   return client, auth
 
