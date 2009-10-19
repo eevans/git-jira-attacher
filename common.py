@@ -1,6 +1,10 @@
 from urllib2   import urlopen
 from datetime  import datetime
+from os.path   import join, expanduser, exists
 from suds.client import Client
+import getpass
+
+USER_CONFIG = join(expanduser('~'), '.git-jira-tools')
 
 class JiraAttachment(object):
     fields = ('filename', 'filesize', 'mimetype', 'author', 'created', 'id')
@@ -61,5 +65,33 @@ def formatted_attachment_list(attachments):
 def parse_patch_ids(ids):
     # This is a little naive but OK for now
     return ids.replace(',', ' ').split()
+
+def get_user_config():
+    """Parse a user settings file, return a dict result."""
+    user_config = {}
+
+    if exists(USER_CONFIG):
+        try:
+            f = open(USER_CONFIG, 'r')
+            for ln in f.readlines():
+                tokens = ln.split('=')
+                if len(tokens) == 2:
+                    user_config[tokens[0].strip()] = tokens[1].strip()
+            f.close()
+        except Exception, error:
+            from sys import stderr
+            print >>stderr, "Warning: unable to parse user config:", error
+    
+    return user_config
+
+def get_username(user_config=None):
+    if isinstance(user_config, dict) and user_config.has_key("username"):
+        return user_config["username"]
+    return getpass.getuser()
+
+def get_password(user_config=None):
+    if isinstance(user_config, dict) and user_config.has_key("password"):
+        return user_config["password"]
+    return getpass.getpass()
  
 # vi:ai sw=4 ts=4 tw=0 et:

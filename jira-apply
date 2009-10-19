@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # Copyright (c) 2009 Eric Evans <eevans@sym-link.com>
 
-from common import JiraClient, formatted_attachment_list, parse_patch_ids
-import getpass, subprocess as sp
+from common import JiraClient, formatted_attachment_list, parse_patch_ids, \
+                   get_user_config, get_username, get_password
+import subprocess as sp
 
 def apply_patches(attachments, ids, level=0):
     for index in ids:
@@ -43,11 +44,12 @@ if __name__ == '__main__':
         exit(1)
 
     username = options.username
-
+    user_config = get_user_config()
+        
     if not username:
-        username = getpass.getuser('JIRA Username: ')
-    passwd = getpass.getpass('JIRA Password: ')
-
+        username = get_username(user_config)
+    passwd = get_password(user_config)
+    
     main(arguments[0], username, passwd, options.strip)
 
 # vi:ai sw=4 ts=4 tw=0 et
