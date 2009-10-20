@@ -1,8 +1,7 @@
 from urllib2   import urlopen
 from datetime  import datetime
 from os.path   import join, expanduser, exists
-from suds.client import Client
-import getpass
+import SOAPpy, getpass
 
 USER_CONFIG = join(expanduser('~'), '.git-jira-tools')
 
@@ -36,13 +35,13 @@ class JiraClient(object):
         self.__connect()
     
     def __connect(self):
-        url = self.url + "/rpc/soap/jirasoapservice-v2?wsdl"
-        self.client = Client(url)
-        self.token = self.client.service.login(self.user, self.passwd)
+        handle = urlopen(self.url + "/rpc/soap/jirasoapservice-v2?wsdl")
+        self.client = SOAPpy.WSDL.Proxy(handle)
+        self.token = self.client.login(self.user, self.passwd)
         
     def get_attachments(self, issue):
         resultset = []
-        for a in self.client.service.getAttachmentsFromIssue(self.token, issue.upper())[0]:
+        for a in self.client.getAttachmentsFromIssue(self.token, issue.upper()):
             resultset.append(JiraAttachment(a))
         return resultset
 

@@ -25,5 +25,4 @@ setup(name='git-jira-attacher',
       ],
       scripts=['jira-am', 'jira-apply', 'git-jira-attacher'],
       py_modules=['common'],
-      install_requires=['suds >= 0.3.6'],
 )
