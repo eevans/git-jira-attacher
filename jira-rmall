@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+
+"""
+Removes all attachments associated with a jira issue
+"""
+
+from mechanize import Browser
+from common import get_username, get_password, get_user_config
+
+URL = 'https://issues.apache.org/jira'
+LOGIN = 'login.jsp?os_destination=/browse'
+
+if __name__ == '__main__':
+    from sys import argv, stderr, exit
+
+    if len(argv) != 2:
+        print >>stderr, "Usage: %s <issue>" % argv[0]
+        exit(1)
+
+    b = Browser()
+    b.set_handle_robots(False)
+    b.open('/'.join([URL, LOGIN, argv[1].upper()]))
+
+    # Login
+    b.select_form(name='loginform')
+    b['os_username'] = get_username(get_user_config())
+    b['os_password'] = get_password(get_user_config())
+    b.submit()
+
+    b.follow_link(text_regex=r'File Attachments')
+
+    links = []
+    for l in b.links(text_regex=r'Delete'):
+        links.append(l)
+
+    for l in links:
+        b.follow_link(l)
+        b.select_form(name='jiraform')
+        b.submit()
+
+# vi:ai sw=4 ts=4 tw=0 et
