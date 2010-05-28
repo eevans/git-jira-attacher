@@ -1,7 +1,7 @@
 from urllib2   import urlopen
 from datetime  import datetime
 from os.path   import join, expanduser, exists
-import SOAPpy, getpass
+import re, SOAPpy, getpass
 
 USER_CONFIG = join(expanduser('~'), '.git-jira-tools')
 
@@ -37,6 +37,11 @@ class JiraClient(object):
     def __connect(self):
         handle = urlopen(self.url + "/rpc/soap/jirasoapservice-v2?wsdl")
         self.client = SOAPpy.WSDL.Proxy(handle)
+        # XXX: Nasty work around for INFRA-2749 @ ASF
+        for callinfo in self.client.methods.values():
+            if 'issues.apache.org' in callinfo.location:
+                callinfo.location = re.sub(r'^http://', 'https://',
+                        callinfo.location)
         self.token = self.client.login(self.user, self.passwd)
         
     def get_attachments(self, issue):

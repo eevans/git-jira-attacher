@@ -80,6 +80,11 @@ def get_soap_client(base_url, username = None):
   import urllib2
   handle = urllib2.urlopen(base_url + "/rpc/soap/jirasoapservice-v2?wsdl")
   client = SOAPpy.WSDL.Proxy(handle)
+  # XXX: Nasty work around for INFRA-2749 @ ASF
+  for callinfo in client.methods.values():
+    if 'issues.apache.org' in callinfo.location:
+      callinfo.location = re.sub(r'^http://', 'https://',
+          callinfo.location)
   auth = client.login(jirauser, jirapass)
   return client, auth
 
